@@ -1,0 +1,79 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>Say It With Me</title>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none}
+body{margin:0;font-family:-apple-system,system-ui,Roboto,sans-serif;background:#fff7e6;color:#333;height:100vh;display:flex;flex-direction:column}
+.tabs{display:flex;gap:6px;padding:10px;overflow-x:auto;flex-shrink:0}
+.tab{border:none;border-radius:20px;padding:10px 14px;font-size:16px;font-weight:700;background:#ffe0a3;color:#7a4b00;white-space:nowrap}
+.tab.on{background:#ff8c42;color:#fff}
+.stage{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px}
+.card{width:min(85vw,380px);aspect-ratio:1;border-radius:36px;border:none;display:flex;align-items:center;justify-content:center;font-size:min(48vw,210px);box-shadow:0 8px 0 rgba(0,0,0,.12);transition:transform .12s}
+.card:active{transform:scale(.95)}
+.word{font-size:46px;font-weight:800;margin:22px 0 4px;text-align:center}
+.tip{font-size:15px;color:#9a7b4f}
+.nav{display:flex;justify-content:space-between;width:min(90vw,400px);margin-top:20px}
+.nav button{border:none;border-radius:50%;width:84px;height:84px;font-size:40px;background:#6cc551;color:#fff;box-shadow:0 5px 0 #4a9a35}
+.nav button.back{background:#c9c9c9;box-shadow:0 5px 0 #a3a3a3}
+.count{align-self:center;font-size:15px;color:#9a7b4f}
+.qword{border:none;background:#ff8c42;color:#fff;font-size:40px;font-weight:800;border-radius:24px;padding:12px 26px;margin:10px 0 18px;box-shadow:0 6px 0 #d96a20}
+.opts{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
+.opt{width:min(27vw,130px);aspect-ratio:1;border:none;border-radius:24px;font-size:min(16vw,76px);box-shadow:0 6px 0 rgba(0,0,0,.12)}
+.opt.wrong{opacity:.35}.opt.right{transform:scale(1.15);outline:5px solid #6cc551}
+.cheer{font-size:30px;font-weight:800;color:#6cc551;min-height:44px;margin-top:16px;text-align:center}
+.tab.quiz{background:#6cc551;color:#fff}.tab.quiz.on{background:#2f8f1c}
+.star{position:fixed;top:40%;left:50%;transform:translate(-50%,-50%);font-size:120px;opacity:0;pointer-events:none;transition:opacity .3s}
+</style></head><body>
+<div class="tabs" id="tabs"></div>
+<div class="stage" id="quiz" style="display:none">
+  <div class="tip" style="font-size:20px">Where is the...</div>
+  <button class="qword" id="qword"></button>
+  <div class="opts" id="opts"></div>
+  <div class="cheer" id="cheer"></div>
+  <div class="count" id="score"></div>
+</div>
+<div class="stage" id="learn">
+  <button class="card" id="card"></button>
+  <div class="word" id="word"></div>
+  <div class="tip">Tap the picture to hear it, then say it together!</div>
+  <div class="nav"><button class="back" id="prev">◀</button><div class="count" id="count"></div><button id="next">▶</button></div>
+</div>
+<div class="star" id="star">⭐</div>
+<script>
+const C=["#ffd6e0","#d6f0ff","#e3ffd6","#fff1b8","#ead6ff","#ffe2c7"];
+const D={
+"Animals":[["🐶","dog"],["🐱","cat"],["🐮","cow"],["🐷","pig"],["🦆","duck"],["🐟","fish"],["🐦","bird"],["🐴","horse"],["🐑","sheep"],["🐔","chicken"],["🐸","frog"],["🐻","bear"],["🦁","lion"],["🐘","elephant"],["🐒","monkey"],["🐰","bunny"]],
+"Food":[["🍎","apple"],["🍌","banana"],["🥛","milk"],["🍞","bread"],["🧀","cheese"],["🥚","egg"],["🍪","cookie"],["🍕","pizza"],["🍇","grapes"],["🥕","carrot"],["💧","water"],["🧃","juice"],["🍓","strawberry"],["🍦","ice cream"],["🥣","cereal"]],
+"Colors":[["🔴","red"],["🔵","blue"],["🟡","yellow"],["🟢","green"],["🟠","orange"],["🟣","purple"],["🩷","pink"],["⚫","black"],["⚪","white"],["🟤","brown"]],
+"Body":[["👁️","eye"],["👃","nose"],["👄","mouth"],["👂","ear"],["✋","hand"],["🦶","foot"],["🦷","teeth"],["💇","hair"],["🦵","leg"],["💪","arm"],["😊","face"],["🫃","tummy"]],
+"Actions":[["🍽️","eat"],["🥤","drink"],["😴","sleep"],["🏃","run"],["🦘","jump"],["👋","bye-bye"],["🤗","hug"],["💃","dance"],["🛁","bath"],["🎶","sing"],["🙌","up"],["⬇️","down"],["🚶","walk"],["😢","cry"],["📖","read"],["🧸","play"]],
+"Home":[["🛏️","bed"],["🪑","chair"],["🚪","door"],["⚽","ball"],["📚","book"],["🥄","spoon"],["🥤","cup"],["👟","shoes"],["🧦","socks"],["🎩","hat"],["🚗","car"],["📱","phone"],["🧸","teddy"],["💡","light"],["🛋️","couch"],["🪥","toothbrush"]],
+"Two Words":[["🐕","big dog"],["🐈","little cat"],["🍎","red apple"],["🚙","blue car"],["🍪","more cookie"],["🥛","more milk"],["👋","hi mama"],["👋","bye dada"],["🛏️","go night-night"],["🙌","up please"],["🏃","me run"],["😋","yummy food"],["🎈","big ball"],["🧃","juice please"],["🐦","bird fly"],["🐶","dog bark"],["🛁","bath time"],["✋","wash hands"],["🍽️","all done"],["🤗","hug mama"],["👟","my shoes"],["💧","water please"],["🌙","good night"],["🙂","I happy"],["🧸","my teddy"]]
+};
+const cats=Object.keys(D);let cat=cats[0],i=0;
+const say=t=>{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.rate=.7;u.pitch=1.2;u.lang="en-US";speechSynthesis.speak(u)};
+function show(){const it=D[cat][i];const c=document.getElementById("card");c.textContent=it[0];c.style.background=C[i%C.length];
+ document.getElementById("word").textContent=it[1];document.getElementById("count").textContent=(i+1)+" / "+D[cat].length;
+ mode(false)}
+const POOL=[];const seen=new Set();cats.filter(k=>k!=="Two Words").forEach(k=>D[k].forEach(it=>{if(!seen.has(it[0])){seen.add(it[0]);POOL.push(it)}}));
+let qa=null,locked=false,stars=0;
+const YAY=["Yay! 🎉","Great job! ⭐","You did it! 🌈","Super! 🥳","Wow! 👏"];
+function mode(q){document.getElementById("quiz").style.display=q?"flex":"none";document.getElementById("learn").style.display=q?"none":"flex";
+ document.querySelectorAll(".tab").forEach(b=>b.classList.toggle("on",q?b.classList.contains("quiz"):(!b.classList.contains("quiz")&&b.textContent===cat)))}
+function newQ(){locked=false;document.getElementById("cheer").textContent="";
+ const sh=[...POOL].sort(()=>Math.random()-.5);qa=sh[0];const opts=sh.slice(0,3).sort(()=>Math.random()-.5);
+ document.getElementById("qword").textContent="🔊 "+qa[1];const o=document.getElementById("opts");o.innerHTML="";
+ opts.forEach((it,j)=>{const b=document.createElement("button");b.className="opt";b.textContent=it[0];b.style.background=C[j%C.length];
+  b.onclick=()=>{if(locked)return;if(it===qa){locked=true;b.classList.add("right");stars++;const y=YAY[Math.floor(Math.random()*YAY.length)];
+   document.getElementById("cheer").textContent=y;document.getElementById("score").textContent="⭐ x "+stars;say(y.replace(/[^a-zA-Z! ]/g,"")+" "+qa[1]+"!");
+   const s=document.getElementById("star");s.style.opacity=1;setTimeout(()=>s.style.opacity=0,900);setTimeout(newQ,2200)}
+  else{b.classList.add("wrong");document.getElementById("cheer").textContent="Try again! 💛";say("Try again. Where is the "+qa[1]+"?")}};o.appendChild(b)});
+ setTimeout(()=>say("Where is the "+qa[1]+"?"),300)}
+document.getElementById("qword").onclick=()=>say("Where is the "+qa[1]+"?");
+{const b=document.createElement("button");b.className="tab quiz";b.textContent="🎯 Quiz";b.onclick=()=>{mode(true);newQ()};document.getElementById("tabs").appendChild(b)}
+cats.forEach(k=>{const b=document.createElement("button");b.className="tab";b.textContent=k;b.onclick=()=>{cat=k;i=0;mode(false);show()};document.getElementById("tabs").appendChild(b)});
+document.getElementById("card").onclick=()=>{say(D[cat][i][1]);const s=document.getElementById("star");s.style.opacity=1;setTimeout(()=>s.style.opacity=0,700)};
+document.getElementById("next").onclick=()=>{i=(i+1)%D[cat].length;show()};
+document.getElementById("prev").onclick=()=>{i=(i-1+D[cat].length)%D[cat].length;show()};
+show();
+</script></body></html>
